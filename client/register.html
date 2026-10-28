@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - StudentShop E-Commerce</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Dynamic Navbar -->
+  <div id="navbar-placeholder"></div>
+
+  <main class="py-5 d-flex align-items-center">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+          <div class="card shadow p-4">
+            <div class="text-center mb-4">
+              <span class="fs-1 text-warning"><i class="bi bi-person-plus"></i></span>
+              <h2 class="fw-bold mt-2">Create Account</h2>
+              <p class="text-muted">Register to start ordering items today</p>
+            </div>
+
+            <!-- Registration Form -->
+            <form id="register-form" onsubmit="handleRegister(event)">
+              <!-- Name Input -->
+              <div class="mb-3">
+                <label for="name" class="form-label">Full Name</label>
+                <input type="text" class="form-control" id="name" required placeholder="John Doe">
+              </div>
+
+              <!-- Email Input -->
+              <div class="mb-3">
+                <label for="email" class="form-label">Email Address</label>
+                <input type="email" class="form-control" id="email" required placeholder="john@example.com">
+              </div>
+
+              <!-- Password Input -->
+              <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" required minlength="6" placeholder="At least 6 characters">
+              </div>
+
+              <!-- User Role (Excellent student feature: choose role to test admin mode easily) -->
+              <div class="mb-3">
+                <label for="role" class="form-label">Account Type</label>
+                <select id="role" class="form-select">
+                  <option value="user">Standard Customer</option>
+                  <option value="admin">Administrator (Manage Products & Orders)</option>
+                </select>
+                <div class="form-text text-muted">
+                  Choosing "Administrator" unlocks catalog management dashboards.
+                </div>
+              </div>
+
+              <!-- Submit Button -->
+              <div class="d-grid gap-2 mt-4">
+                <button type="submit" class="btn btn-warning text-dark fw-bold btn-lg" id="btn-register">
+                  Sign Up
+                </button>
+              </div>
+            </form>
+
+            <hr class="my-4">
+
+            <!-- Link to Login -->
+            <div class="text-center">
+              <p class="mb-0 text-muted">Already have an account?</p>
+              <a href="login.html" class="fw-bold text-decoration-none text-dark">Sign In <i class="bi bi-arrow-right"></i></a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-dark text-white py-4 mt-auto">
+    <div class="container text-center">
+      <p class="mb-1">&copy; 2026 StudentShop E-Commerce Project.</p>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5 Bundle JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Global Helper JS -->
+  <script src="js/app.js"></script>
+
+  <!-- Page Specific Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // If already logged in, redirect to index
+      if (isLoggedIn()) {
+        window.location.href = 'index.html';
+      }
+    });
+
+    async function handleRegister(event) {
+      event.preventDefault();
+
+      const btnRegister = document.getElementById('btn-register');
+      btnRegister.disabled = true;
+      btnRegister.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Creating Account...`;
+
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const role = document.getElementById('role').value;
+
+      try {
+        const response = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ name, email, password, role })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          showAlert('Account registered successfully! Logging you in...', 'success');
+          
+          // Store token & user metadata in localStorage
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('user', JSON.stringify(data.user));
+
+          // Redirect based on selected account type
+          setTimeout(() => {
+            if (data.user.role === 'admin') {
+              window.location.href = 'admin-dashboard.html';
+            } else {
+              window.location.href = 'products.html';
+            }
+          }, 1500);
+        } else {
+          showAlert(data.message || 'Registration failed. Check inputs.', 'danger');
+          btnRegister.disabled = false;
+          btnRegister.textContent = 'Sign Up';
+        }
+      } catch (error) {
+        console.error('Registration error:', error);
+        showAlert('Could not connect to authentication servers', 'danger');
+        btnRegister.disabled = false;
+        btnRegister.textContent = 'Sign Up';
+      }
+    }
+  </script>
+</body>
+</html>

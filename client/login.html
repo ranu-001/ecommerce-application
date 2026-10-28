@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - StudentShop E-Commerce</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Dynamic Navbar -->
+  <div id="navbar-placeholder"></div>
+
+  <main class="py-5 d-flex align-items-center">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+          <div class="card shadow p-4">
+            <div class="text-center mb-4">
+              <span class="fs-1 text-warning"><i class="bi bi-person-lock"></i></span>
+              <h2 class="fw-bold mt-2">Sign In</h2>
+              <p class="text-muted">Access your cart and view order tracking status</p>
+            </div>
+
+            <!-- Login Form -->
+            <form id="login-form" onsubmit="handleLogin(event)">
+              <!-- Email Input -->
+              <div class="mb-3">
+                <label for="email" class="form-label">Email Address</label>
+                <input type="email" class="form-control" id="email" required placeholder="name@example.com">
+              </div>
+
+              <!-- Password Input -->
+              <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" required placeholder="••••••••">
+              </div>
+
+              <!-- Submit Button -->
+              <div class="d-grid gap-2 mt-4">
+                <button type="submit" class="btn btn-warning text-dark fw-bold btn-lg" id="btn-login">
+                  Sign In
+                </button>
+              </div>
+            </form>
+
+            <hr class="my-4">
+
+            <!-- Switch to register -->
+            <div class="text-center">
+              <p class="mb-0 text-muted">Don't have an account yet?</p>
+              <a href="register.html" class="fw-bold text-decoration-none text-dark">Create Account <i class="bi bi-arrow-right"></i></a>
+            </div>
+
+            <!-- Helper credentials banner for testing -->
+            <div class="alert alert-light mt-4 mb-0 border text-center" style="font-size: 0.85rem;">
+              <span class="fw-bold text-secondary"><i class="bi bi-info-circle"></i> Quick Test Accounts:</span>
+              <hr class="my-1">
+              <span class="text-muted">Register your own, or use existing details once created.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-dark text-white py-4 mt-auto">
+    <div class="container text-center">
+      <p class="mb-1">&copy; 2026 StudentShop E-Commerce Project.</p>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5 Bundle JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Global Helper JS -->
+  <script src="js/app.js"></script>
+
+  <!-- Page Specific Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // If already logged in, redirect to index
+      if (isLoggedIn()) {
+        window.location.href = 'index.html';
+      }
+    });
+
+    async function handleLogin(event) {
+      event.preventDefault();
+
+      const btnLogin = document.getElementById('btn-login');
+      btnLogin.disabled = true;
+      btnLogin.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Authenticating...`;
+
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          showAlert('Signed in successfully! Redirecting...', 'success');
+          
+          // Save JWT token and profile metadata in localStorage
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('user', JSON.stringify(data.user));
+
+          // Check if admin is logging in and redirect accordingly
+          setTimeout(() => {
+            if (data.user.role === 'admin') {
+              window.location.href = 'admin-dashboard.html';
+            } else {
+              window.location.href = 'products.html';
+            }
+          }, 1500);
+        } else {
+          showAlert(data.message || 'Invalid email or password', 'danger');
+          btnLogin.disabled = false;
+          btnLogin.textContent = 'Sign In';
+        }
+      } catch (error) {
+        console.error('Login error:', error);
+        showAlert('Could not connect to authentication servers', 'danger');
+        btnLogin.disabled = false;
+        btnLogin.textContent = 'Sign In';
+      }
+    }
+  </script>
+</body>
+</html>

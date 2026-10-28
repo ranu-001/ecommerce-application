@@ -1,0 +1,139 @@
+/* General Styling */
+body {
+  background-color: #f8f9fa;
+  color: #212529;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1;
+}
+
+/* Product Card Styling */
+.product-card {
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  border: 1px solid rgba(0,0,0,.125);
+  overflow: hidden;
+}
+
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+.product-card img {
+  height: 200px;
+  object-fit: cover;
+  background-color: #fff;
+}
+
+/* Product Detail Image */
+.detail-img {
+  max-height: 450px;
+  object-fit: contain;
+  background-color: #fff;
+}
+
+/* Footer position */
+footer {
+  margin-top: auto;
+}
+
+/* Dark Mode Variables and Overrides */
+body.dark-mode {
+  background-color: #121212;
+  color: #e0e0e0;
+}
+
+body.dark-mode .card {
+  background-color: #1e1e1e;
+  border-color: #2d2d2d;
+  color: #e0e0e0;
+}
+
+body.dark-mode .card-footer {
+  background-color: #242424;
+  border-top-color: #2d2d2d;
+}
+
+body.dark-mode .list-group-item {
+  background-color: #1e1e1e;
+  border-color: #2d2d2d;
+  color: #e0e0e0;
+}
+
+body.dark-mode .table {
+  color: #e0e0e0;
+  border-color: #2d2d2d;
+}
+
+body.dark-mode .table th, 
+body.dark-mode .table td {
+  border-color: #2d2d2d;
+}
+
+body.dark-mode .table-striped > tbody > tr:nth-of-type(odd) {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #e0e0e0;
+}
+
+body.dark-mode .form-control,
+body.dark-mode .form-select {
+  background-color: #2d2d2d;
+  border-color: #444444;
+  color: #e0e0e0;
+}
+
+body.dark-mode .form-control:focus,
+body.dark-mode .form-select:focus {
+  background-color: #333333;
+  color: #ffffff;
+  border-color: #ffc107;
+  box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25);
+}
+
+body.dark-mode .modal-content {
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+  border-color: #2d2d2d;
+}
+
+body.dark-mode .modal-header {
+  border-bottom-color: #2d2d2d;
+}
+
+body.dark-mode .modal-footer {
+  border-top-color: #2d2d2d;
+}
+
+/* Utility alert styling */
+#alert-container .alert {
+  border-radius: 8px;
+}
+
+/* Custom categories sidebar filters */
+.category-filter-btn {
+  text-align: left;
+}
+
+/* Rating badge */
+.badge-status-pending {
+  background-color: #ffc107;
+  color: #000;
+}
+.badge-status-processing {
+  background-color: #0dcaf0;
+  color: #000;
+}
+.badge-status-shipped {
+  background-color: #0d6efd;
+  color: #fff;
+}
+.badge-status-delivered {
+  background-color: #198754;
+  color: #fff;
+}

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout - StudentShop E-Commerce</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Dynamic Navbar -->
+  <div id="navbar-placeholder"></div>
+
+  <main class="py-5">
+    <div class="container">
+      <h1 class="fw-bold mb-4">Checkout</h1>
+
+      <div class="row g-4" id="checkout-row">
+        <!-- Loading Spinner -->
+        <div class="col-12 text-center my-5" id="loading-spinner">
+          <div class="spinner-border text-warning" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="mt-2 text-muted">Preparing your order summary...</p>
+        </div>
+
+        <!-- Dynamically Injected Layout (Left Form, Right Cart Snapshot) -->
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-dark text-white py-4 mt-auto">
+    <div class="container text-center">
+      <p class="mb-1">&copy; 2026 StudentShop E-Commerce Project.</p>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5 Bundle JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Global Helper JS -->
+  <script src="js/app.js"></script>
+
+  <!-- Page Specific Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Protect page
+      if (!isLoggedIn()) {
+        showAlert('Please login to checkout.', 'warning');
+        setTimeout(() => {
+          window.location.href = 'login.html';
+        }, 1500);
+        return;
+      }
+
+      loadCheckoutSummary();
+    });
+
+    // Fetch cart details and render checkout forms
+    async function loadCheckoutSummary() {
+      const container = document.getElementById('checkout-row');
+      
+      try {
+        const response = await fetch('/api/cart', {
+          headers: getAuthHeaders()
+        });
+
+        if (!response.ok) throw new Error('Failed to fetch cart');
+
+        const cart = await response.json();
+
+        // If cart is empty, redirect back to cart
+        if (!cart.items || cart.items.length === 0) {
+          showAlert('Your cart is empty. Redirecting to shopping cart...', 'warning');
+          setTimeout(() => {
+            window.location.href = 'cart.html';
+          }, 1500);
+          return;
+        }
+
+        // Render summary items
+        let summaryListHtml = '';
+        let total = 0;
+
+        cart.items.forEach(item => {
+          const product = item.product;
+          if (!product) return;
+
+          const cost = product.price * item.quantity;
+          total += cost;
+
+          summaryListHtml += `
+            <li class="list-group-item d-flex justify-content-between lh-sm">
+              <div>
+                <h6 class="my-0 fw-bold">${product.name}</h6>
+                <small class="text-muted">Qty: ${item.quantity} x $${product.price.toFixed(2)}</small>
+              </div>
+              <span class="text-muted">$${cost.toFixed(2)}</span>
+            </li>
+          `;
+        });
+
+        // Prepopulate shipping name if user is stored
+        const user = getUser();
+        const defaultName = user ? user.name : '';
+
+        container.innerHTML = `
+          <!-- Shipping Form (Left column) -->
+          <div class="col-md-7 col-lg-8">
+            <div class="card p-4 shadow-sm">
+              <h4 class="mb-4 fw-bold">Shipping Information</h4>
+              <form id="checkout-form" onsubmit="handlePlaceOrder(event)">
+                <div class="row g-3">
+                  <!-- Full Name -->
+                  <div class="col-12">
+                    <label for="fullName" class="form-label">Full Name</label>
+                    <input type="text" class="form-control" id="fullName" value="${defaultName}" required placeholder="John Doe">
+                    <div class="invalid-feedback">Valid full name is required.</div>
+                  </div>
+
+                  <!-- Phone Number -->
+                  <div class="col-12">
+                    <label for="phoneNumber" class="form-label">Phone Number</label>
+                    <input type="tel" class="form-control" id="phoneNumber" required placeholder="+1 (555) 019-2834">
+                    <div class="invalid-feedback">Phone number is required.</div>
+                  </div>
+
+                  <!-- Shipping Address -->
+                  <div class="col-12">
+                    <label for="address" class="form-label">Shipping Address</label>
+                    <textarea class="form-control" id="address" rows="3" required placeholder="1234 Main St, Apartment 4B, New York, NY 10001"></textarea>
+                    <div class="invalid-feedback">Please enter your shipping address.</div>
+                  </div>
+                </div>
+
+                <hr class="my-4">
+
+                <!-- Submit Button -->
+                <button class="w-100 btn btn-warning btn-lg text-dark fw-bold" type="submit" id="btn-submit-order">
+                  <i class="bi bi-credit-card-2-front"></i> Place Mock Order
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Order Summary Widget (Right column) -->
+          <div class="col-md-5 col-lg-4">
+            <h4 class="d-flex justify-content-between align-items-center mb-3">
+              <span class="text-dark fw-bold">Your Cart</span>
+              <span class="badge bg-secondary rounded-pill">${cart.items.length}</span>
+            </h4>
+            
+            <ul class="list-group mb-3 shadow-sm">
+              ${summaryListHtml}
+              <li class="list-group-item d-flex justify-content-between bg-light">
+                <span class="text-success fw-bold">Shipping</span>
+                <strong class="text-success">FREE</strong>
+              </li>
+              <li class="list-group-item d-flex justify-content-between">
+                <span class="fw-bold">Total (USD)</span>
+                <strong class="text-primary fs-5">$${total.toFixed(2)}</strong>
+              </li>
+            </ul>
+            
+            <div class="alert alert-info py-2" role="alert" style="font-size: 0.85rem;">
+              <i class="bi bi-info-circle-fill"></i> This is a mock checkout. No payment details are requested, and your stock inventory will be updated automatically.
+            </div>
+          </div>
+        `;
+      } catch (error) {
+        console.error('Error preparing checkout:', error);
+        container.innerHTML = `
+          <div class="col-12 text-center text-danger py-5">
+            <p><i class="bi bi-exclamation-triangle-fill fs-2"></i></p>
+            <p>Could not prepare checkout details. Please try reloading the page.</p>
+          </div>
+        `;
+      }
+    }
+
+    // Form submit handler to call Order POST api
+    async function handlePlaceOrder(event) {
+      event.preventDefault();
+
+      const btnSubmit = document.getElementById('btn-submit-order');
+      btnSubmit.disabled = true;
+      btnSubmit.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Placing Order...`;
+
+      const customerName = document.getElementById('fullName').value.trim();
+      const phoneNumber = document.getElementById('phoneNumber').value.trim();
+      const shippingAddress = document.getElementById('address').value.trim();
+
+      try {
+        const response = await fetch('/api/orders', {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: JSON.stringify({
+            customerName,
+            phoneNumber,
+            shippingAddress
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          showAlert('Order placed successfully! Redirecting...', 'success');
+          // Clear cart navbar badge count
+          updateCartBadge();
+          // Redirect to orders history page after a brief delay
+          setTimeout(() => {
+            window.location.href = 'orders.html';
+          }, 2000);
+        } else {
+          showAlert(data.message || 'Failed to place order', 'danger');
+          btnSubmit.disabled = false;
+          btnSubmit.innerHTML = `<i class="bi bi-credit-card-2-front"></i> Place Mock Order`;
+        }
+      } catch (error) {
+        console.error('Error placing order:', error);
+        showAlert('Error connecting to the server', 'danger');
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = `<i class="bi bi-credit-card-2-front"></i> Place Mock Order`;
+      }
+    }
+  </script>
+</body>
+</html>
